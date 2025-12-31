@@ -591,7 +591,7 @@
         const callGeminiAPI = async (query, data) => {
             // The API key is an empty string.
             // The runtime environment (Canvas) will securely provide the key.
-            const apiKey = "AIzaSyDpDOmgDUkAIKovWN9-2vyqI7tUPbo0q5M"; 
+            const apiKey = "AIzaSyDDBxho0dJow3mxqoKxuIZagL53RMI135w"; 
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
 
             const systemPrompt = "You are a friendly and helpful fraud analysis assistant named 'Alex'. Your goal is to assist users in a conversational and approachable manner. Do not use any Markdown formatting like **, ###, or lists with *. Use simple line breaks to separate ideas. If the user starts with a greeting like 'hi' or 'hello', respond with a friendly greeting and offer to help. For analysis requests about the relationship between two entities (e.g., Person A and Person B), analyze the entire fraud group they belong to. Identify if they are connected directly (sharing a phone, email, etc.) or indirectly (connected through other members of the same group). Explain the connection path in simple terms. If they are in the same group (directly or indirectly connected), end your response with the special token: `[MINDMAP_VIEW:Person A,Person B]`, replacing Person A and Person B with the full names from the user's query.";
