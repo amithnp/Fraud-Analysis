@@ -64,21 +64,27 @@
         </defs>
     </svg>
 
-    <div class="w-full max-w-7xl mx-auto">
-        <div class="bg-white w-full max-w-7xl mx-auto rounded-2xl shadow-2xl shadow-slate-200/60 p-6 md:p-8">
-            <div class="text-center mb-8">
-                <div class="flex justify-center items-center gap-4">
-                    <h1 class="text-4xl font-bold text-slate-800 tracking-tight">Data Analysis Platform</h1>
-                    <!-- Deeper Analysis Button: Color changed to sky blue for consistency -->
-                    <button id="deeperAnalysisBtn" class="bg-sky-600 text-white font-semibold py-2 px-5 rounded-lg hover:bg-sky-700 focus:outline-none focus:ring-4 focus:ring-sky-300 transition-all text-sm inline-flex items-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5 10a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1z" clip-rule="evenodd" />
-                        </svg>
-                        Deeper Analysis
-                    </button>
-                </div>
-                <p class="text-slate-500 mt-3 text-lg">Upload a file to analyze for fraudulent connections.</p>
+ <div class="w-full max-w-7xl mx-auto">
+    <div class="bg-white w-full max-w-7xl mx-auto rounded-2xl shadow-2xl shadow-slate-200/60 p-6 md:p-8">
+        <div class="text-center mb-8">
+            <div class="flex flex-col items-center mb-6">
+                <img src="AB3FA1DB-E289-46A1-AAF0-02B1B3370002-removebg-preview.png" 
+                     alt="AI Fraud Analysis Advisory" 
+                     class="h-32 w-auto object-contain">
             </div>
+
+            <div class="flex flex-col md:flex-row justify-center items-center gap-4">
+                <h1 class="text-4xl font-bold text-slate-800 tracking-tight">Data Analysis Platform</h1>
+                
+                <button id="deeperAnalysisBtn" class="bg-sky-600 text-white font-semibold py-2 px-5 rounded-lg hover:bg-sky-700 focus:outline-none focus:ring-4 focus:ring-sky-300 transition-all text-sm inline-flex items-center gap-2">
+                    <img src="AB3FA1DB-E289-46A1-AAF0-02B1B3370002-removebg-preview.png" 
+                         class="h-5 w-5 object-contain brightness-0 invert" 
+                         alt="">
+                    Deeper Analysis
+                </button>
+            </div>
+            <p class="text-slate-500 mt-3 text-lg">Upload a file to analyze for fraudulent connections.</p>
+        </div>
             <!-- Detector content (upload, process, results) -->
             <div id="uploadContainer" class="fade-in">
                 <div id="dropZone" class="drop-zone rounded-xl p-10 text-center cursor-pointer bg-slate-50 hover:bg-slate-100">
