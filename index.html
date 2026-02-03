@@ -26,7 +26,7 @@
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        .btn-spinner { animation: spin 1s linear infinite; }
+        .btn-spinner, .chat-spinner { animation: spin 1s linear infinite; }
         @keyframes spin {
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
@@ -47,7 +47,9 @@
         .graph-link { stroke: #cbd5e1; stroke-opacity: 0.6; transition: stroke-opacity 0.3s, stroke 0.3s; }
         .graph-text { pointer-events: none; font-size: 11px; fill: #1e293b; font-weight: 600; paint-order: stroke; stroke: #f8fafc; stroke-width: 3px; stroke-linecap: butt; stroke-linejoin: miter; }
         .graph-node.faded, .graph-link.faded, .legend-item.faded { opacity: 0.2; }
-        .graph-link.highlighted { stroke-opacity: 1; stroke-width: 2.5px; }
+        .graph-link.highlighted { stroke-opacity: 1; stroke-width: 2.5px; stroke: #0ea5e9; }
+        .graph-node.highlighted circle { stroke: #0ea5e9; stroke-width: 3px; }
+        
         #mindMapContainer { background-image: radial-gradient(#e2e8f0 1px, transparent 0); background-size: 20px 20px; }
         
         /* Custom range sliders */
@@ -55,6 +57,10 @@
         .risk-slider:hover { opacity: 1; }
         .risk-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; background: #0ea5e9; cursor: pointer; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 3px rgba(0,0,0,0.4); }
         .risk-slider::-moz-range-thumb { width: 20px; height: 20px; background: #0ea5e9; cursor: pointer; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 3px rgba(0,0,0,0.4); }
+
+        /* Chat styles */
+        .chat-bubble-user { background-color: #0ea5e9; color: white; border-bottom-right-radius: 2px; }
+        .chat-bubble-bot { background-color: #f1f5f9; color: #1e293b; border-bottom-left-radius: 2px; }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen">
@@ -68,8 +74,15 @@
                      class="h-10 w-auto object-contain">
                 <span class="hidden md:block text-xl font-bold text-slate-800 tracking-tight">FraudLens <span class="text-sky-600 font-medium text-base">Pro</span></span>
             </div>
+            
+            <nav class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
+                <button id="navDetector" class="px-4 py-2 text-sm font-bold rounded-lg transition-all bg-white text-sky-600 shadow-sm">Fraud Detector</button>
+                <button id="navAnalyst" class="px-4 py-2 text-sm font-bold rounded-lg transition-all text-slate-500 hover:text-slate-700">Analyst Assistant</button>
+            </nav>
+
             <div class="flex items-center gap-4">
-                <button id="deeperAnalysisBtn" class="bg-white border border-slate-200 text-slate-700 font-semibold py-2 px-4 rounded-lg hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-slate-100 transition-all text-sm inline-flex items-center gap-2 shadow-sm">
+                <!-- Redirect Button -->
+                <button id="deeperAnalysisBtn" class="bg-white border border-slate-200 text-slate-700 font-semibold py-2 px-4 rounded-lg hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-slate-100 transition-all text-sm inline-flex items-center gap-2 shadow-sm active:scale-95">
                     <img src="AB3FA1DB-E289-46A1-AAF0-02B1B3370002-removebg-preview.png" 
                          class="h-4 w-4 object-contain" 
                          alt="">
@@ -87,19 +100,21 @@
             <symbol id="icon-ip" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10s10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93c0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1h-2v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41c0 2.08-.8 3.97-2.1 5.39z"/></symbol>
             <symbol id="icon-tin" viewBox="0 0 24 24"><path fill="currentColor" d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zM9 13v-2h2v2H9zm4 0v-2h2v2h-2zm-4 4v-2h2v2H9zm4 0v-2h2v2h-2z"/></symbol>
             <symbol id="icon-name" viewBox="0 0 24 24"><path fill="currentColor" d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></symbol>
+            <symbol id="icon-user" viewBox="0 0 24 24"><path fill="currentColor" d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4s-4 1.79-4 4s1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></symbol>
         </defs>
     </svg>
 
-    <main class="w-full max-w-7xl mx-auto px-4 py-12">
+    <!-- Page: Fraud Detector -->
+    <main id="pageDetector" class="w-full max-w-7xl mx-auto px-4 py-12 fade-in">
         <div class="bg-white rounded-3xl shadow-2xl shadow-slate-200/60 p-6 md:p-10 border border-slate-100">
             <div class="text-center mb-10">
                 <h1 class="text-4xl font-extrabold text-slate-900 tracking-tight sm:text-5xl">Data Analysis Platform</h1>
                 <p class="text-slate-500 mt-4 text-lg max-w-2xl mx-auto">Upload and audit datasets to instantly uncover fraudulent connections, shared identities, and high-risk clusters.</p>
             </div>
 
-            <!-- Detector content (upload, process, results) -->
+            <!-- Upload Zone -->
             <div id="uploadContainer" class="fade-in">
-                <div id="dropZone" class="drop-zone rounded-2xl p-16 text-center cursor-pointer bg-slate-50 hover:bg-slate-100 group">
+                <div id="dropZone" class="drop-zone rounded-2xl p-16 text-center cursor-pointer bg-slate-50 hover:bg-slate-100 group transition-all">
                     <input type="file" id="fileInput" class="hidden" accept=".xlsx, .xls, .csv">
                     <div class="flex justify-center items-center">
                         <div class="p-4 bg-sky-50 rounded-full group-hover:scale-110 transition-transform">
@@ -114,6 +129,7 @@
                 <div id="fileName" class="text-center mt-4 text-slate-700 font-medium"></div>
             </div>
 
+            <!-- Risk Weight Configuration -->
             <div id="riskConfigContainer" class="max-w-4xl mx-auto mt-10 hidden border-t border-slate-100 pt-10">
                 <div class="flex items-center gap-4 mb-6">
                     <div class="h-px bg-slate-200 flex-grow"></div>
@@ -122,12 +138,9 @@
                 </div>
                 
                 <div class="space-y-4 bg-slate-50/50 p-6 rounded-2xl border border-slate-100">
-                    <!-- Item 1: Shared Phone -->
                     <div class="grid grid-cols-1 md:grid-cols-3 items-center gap-x-6 gap-y-2">
                         <div class="flex items-center gap-3">
-                            <div class="bg-white text-sky-600 p-2 rounded-lg shadow-sm border border-slate-100">
-                                <svg class="w-5 h-5"><use xlink:href="#icon-phone"></use></svg>
-                            </div>
+                            <div class="bg-white text-sky-600 p-2 rounded-lg shadow-sm border border-slate-100"><svg class="w-5 h-5"><use xlink:href="#icon-phone"></use></svg></div>
                             <label for="scorePhone" class="font-semibold text-slate-700">Shared Phone</label>
                         </div>
                         <div class="col-span-2 flex items-center gap-4">
@@ -135,12 +148,9 @@
                             <input type="number" id="scorePhone" min="1" max="100" value="20" class="w-16 text-center font-bold text-slate-700 bg-white rounded-lg border-slate-200 focus:ring-sky-500 focus:border-sky-500 text-sm p-2 shadow-sm">
                         </div>
                     </div>
-                    <!-- Item 2: Shared Email -->
                     <div class="grid grid-cols-1 md:grid-cols-3 items-center gap-x-6 gap-y-2">
                         <div class="flex items-center gap-3">
-                            <div class="bg-white text-sky-600 p-2 rounded-lg shadow-sm border border-slate-100">
-                                <svg class="w-5 h-5"><use xlink:href="#icon-email"></use></svg>
-                            </div>
+                            <div class="bg-white text-sky-600 p-2 rounded-lg shadow-sm border border-slate-100"><svg class="w-5 h-5"><use xlink:href="#icon-email"></use></svg></div>
                             <label for="scoreEmail" class="font-semibold text-slate-700">Shared Email</label>
                         </div>
                         <div class="col-span-2 flex items-center gap-4">
@@ -148,12 +158,9 @@
                             <input type="number" id="scoreEmail" min="1" max="100" value="20" class="w-16 text-center font-bold text-slate-700 bg-white rounded-lg border-slate-200 focus:ring-sky-500 focus:border-sky-500 text-sm p-2 shadow-sm">
                         </div>
                     </div>
-                    <!-- Item 3: Shared IP -->
                     <div class="grid grid-cols-1 md:grid-cols-3 items-center gap-x-6 gap-y-2">
                         <div class="flex items-center gap-3">
-                            <div class="bg-white text-sky-600 p-2 rounded-lg shadow-sm border border-slate-100">
-                                <svg class="w-5 h-5"><use xlink:href="#icon-ip"></use></svg>
-                            </div>
+                            <div class="bg-white text-sky-600 p-2 rounded-lg shadow-sm border border-slate-100"><svg class="w-5 h-5"><use xlink:href="#icon-ip"></use></svg></div>
                             <label for="scoreIp" class="font-semibold text-slate-700">Shared IP</label>
                         </div>
                         <div class="col-span-2 flex items-center gap-4">
@@ -161,12 +168,9 @@
                             <input type="number" id="scoreIp" min="1" max="100" value="15" class="w-16 text-center font-bold text-slate-700 bg-white rounded-lg border-slate-200 focus:ring-sky-500 focus:border-sky-500 text-sm p-2 shadow-sm">
                         </div>
                     </div>
-                    <!-- Item 4: Shared TIN -->
                     <div class="grid grid-cols-1 md:grid-cols-3 items-center gap-x-6 gap-y-2">
                         <div class="flex items-center gap-3">
-                            <div class="bg-white text-sky-600 p-2 rounded-lg shadow-sm border border-slate-100">
-                                <svg class="w-5 h-5"><use xlink:href="#icon-tin"></use></svg>
-                            </div>
+                            <div class="bg-white text-sky-600 p-2 rounded-lg shadow-sm border border-slate-100"><svg class="w-5 h-5"><use xlink:href="#icon-tin"></use></svg></div>
                             <label for="scoreTin" class="font-semibold text-slate-700">Shared TIN</label>
                         </div>
                         <div class="col-span-2 flex items-center gap-4">
@@ -174,12 +178,9 @@
                             <input type="number" id="scoreTin" min="1" max="100" value="35" class="w-16 text-center font-bold text-slate-700 bg-white rounded-lg border-slate-200 focus:ring-sky-500 focus:border-sky-500 text-sm p-2 shadow-sm">
                         </div>
                     </div>
-                    <!-- Item 5: Similar Names -->
                     <div class="grid grid-cols-1 md:grid-cols-3 items-center gap-x-6 gap-y-2">
                         <div class="flex items-center gap-3">
-                            <div class="bg-white text-sky-600 p-2 rounded-lg shadow-sm border border-slate-100">
-                                <svg class="w-5 h-5"><use xlink:href="#icon-name"></use></svg>
-                            </div>
+                            <div class="bg-white text-sky-600 p-2 rounded-lg shadow-sm border border-slate-100"><svg class="w-5 h-5"><use xlink:href="#icon-name"></use></svg></div>
                             <label for="scoreName" class="font-semibold text-slate-700">Similar Names</label>
                         </div>
                         <div class="col-span-2 flex items-center gap-4">
@@ -200,11 +201,9 @@
             
             <div id="actionContainer" class="text-center mt-10 hidden">
                 <button id="processBtn" class="bg-sky-600 text-white font-bold py-4 px-12 rounded-2xl hover:bg-sky-700 focus:outline-none focus:ring-4 focus:ring-sky-200 disabled:bg-slate-300 shadow-lg shadow-sky-600/20 transition-all text-lg inline-flex items-center justify-center gap-3">
-                    <svg id="processIcon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6" />
-                    </svg>
+                    <svg id="processIcon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6" /></svg>
                     <svg id="spinnerIcon" class="w-6 h-6 btn-spinner hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                    <span id="processBtnText">Run Fraud Analysis</span>
+                    <span id="processBtnText">Run Deep Analysis</span>
                 </button>
             </div>
 
@@ -236,18 +235,14 @@
                     </div>
                     <div class="flex items-center gap-3 w-full md:w-auto">
                         <button id="downloadBtn" class="flex-grow md:flex-grow-0 bg-green-600 text-white font-bold py-2.5 px-6 rounded-xl hover:bg-green-700 focus:outline-none focus:ring-4 focus:ring-green-100 disabled:bg-slate-300 transition-all inline-flex items-center justify-center gap-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                            </svg>
-                            Export XLSX
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                            Export Results
                         </button>
-                        <button id="resetBtn" title="New Analysis" class="p-2.5 bg-slate-100 text-slate-600 rounded-xl hover:bg-slate-200 transition-all">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor"><path d="M21.5 4.5C19.7 2.7 17.2 2 14 2c-4.4 0-8 3.6-8 8s3.6 8 8 8c2.4 0 4.6-1.1 6.1-2.8L18 16c-1.2.9-2.6 1.5-4 1.5-3.3 0-6-2.7-6-6s2.7-6 6-6c1.7 0 3.1 1.1 3.8 2.3l-2.3 2.2H22V2l-1.5 2.5z"/></svg>
-                        </button>
+                        <button id="resetBtn" title="New Analysis" class="p-2.5 bg-slate-100 text-slate-600 rounded-xl hover:bg-slate-200 transition-all"><svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor"><path d="M21.5 4.5C19.7 2.7 17.2 2 14 2c-4.4 0-8 3.6-8 8s3.6 8 8 8c2.4 0 4.6-1.1 6.1-2.8L18 16c-1.2.9-2.6 1.5-4 1.5-3.3 0-6-2.7-6-6s2.7-6 6-6c1.7 0 3.1 1.1 3.8 2.3l-2.3 2.2H22V2l-1.5 2.5z"/></svg></button>
                     </div>
                 </div>
 
-                <div class="overflow-hidden border border-slate-200 rounded-2xl shadow-sm bg-white">
+                <div class="overflow-hidden border border-slate-200 rounded-2xl shadow-sm bg-white mb-10">
                     <div class="overflow-x-auto max-h-[60vh]">
                         <table class="min-w-full divide-y divide-slate-200">
                             <thead class="bg-slate-50 sticky top-0 z-10">
@@ -257,48 +252,170 @@
                         </table>
                     </div>
                 </div>
+
+                <!-- Network Investigation Graph Section -->
+                <div id="mindMapWrapper" class="mt-12 hidden fade-in">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-3xl font-bold text-slate-900">Network Investigation Graph</h2>
+                        <div id="graphLegend" class="flex items-center gap-4 bg-slate-50 p-3 rounded-xl border border-slate-200 shadow-sm overflow-x-auto max-w-lg"></div>
+                    </div>
+                    
+                    <div class="w-full h-[600px] relative bg-slate-50 rounded-3xl border border-slate-200 overflow-hidden shadow-inner">
+                        <div id="mindMapContainer" class="w-full h-full">
+                            <svg id="mindMapSvg" class="w-full h-full"></svg>
+                        </div>
+                        
+                        <div id="detailPanel" class="absolute top-6 right-6 bg-white/90 backdrop-blur-md p-6 rounded-2xl shadow-xl w-80 border border-slate-200 transform translate-x-[120%] transition-transform duration-300">
+                            <button id="closeDetailPanel" class="absolute top-4 right-4 text-slate-400 hover:text-slate-800 transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                            </button>
+                            <div id="detailContent" class="fade-in"></div>
+                        </div>
+                        
+                        <div id="graphControls" class="absolute bottom-6 left-6 flex flex-col gap-2">
+                            <div class="bg-white/80 backdrop-blur-md p-2 rounded-2xl shadow-lg border border-slate-200 flex flex-col gap-1">
+                                <button class="graph-control-btn p-2 rounded-xl text-slate-600 hover:bg-sky-50 hover:text-sky-600 transition-all" data-zoom="in" title="Zoom In">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                                </button>
+                                <button class="graph-control-btn p-2 rounded-xl text-slate-600 hover:bg-sky-50 hover:text-sky-600 transition-all" data-zoom="out" title="Zoom Out">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12h-15" /></svg>
+                                </button>
+                                <button class="graph-control-btn p-2 rounded-xl text-slate-600 hover:bg-sky-50 hover:text-sky-600 transition-all" data-zoom="reset" title="Reset View">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" /></svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </main>
 
-    <!-- Modal -->
-    <div id="alertModal" class="fixed inset-0 bg-slate-900/60 z-50 hidden items-center justify-center p-4 backdrop-blur-sm">
-        <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md text-center transform transition-all scale-95 opacity-0 border border-slate-100" id="alertModalContent">
-            <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-50 mb-6">
-                <svg class="h-8 w-8 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
+    <!-- Page: Analyst Assistant -->
+    <main id="pageAnalyst" class="w-full max-w-5xl mx-auto px-4 py-12 hidden fade-in">
+        <div class="bg-white rounded-3xl shadow-2xl border border-slate-100 p-8">
+            <div class="flex items-center gap-4 mb-8">
+                <div class="p-3 bg-sky-100 text-sky-600 rounded-2xl">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
+                    </svg>
+                </div>
+                <div>
+                    <h2 class="text-3xl font-bold text-slate-900">Investigation Assistant</h2>
+                    <p class="text-slate-500">Ask Alex for insights on group connections and entity relationships.</p>
+                </div>
             </div>
-            <h3 class="text-2xl font-bold text-slate-900" id="alertTitle">Heads Up</h3>
-            <div class="mt-3"><p class="text-slate-500" id="alertMessage">An error occurred.</p></div>
-            <div class="mt-8">
-                <button id="closeModalBtn" type="button" class="w-full bg-slate-900 text-white font-bold py-3 rounded-xl hover:bg-slate-800 transition-all">Dismiss</button>
+
+            <div class="bg-slate-50 rounded-3xl border border-slate-200 overflow-hidden flex flex-col h-[600px] shadow-inner">
+                <div id="chatWindow" class="flex-grow p-6 overflow-y-auto flex flex-col gap-4 bg-white">
+                    <div class="chat-bubble-bot self-start rounded-2xl p-4 max-w-lg text-sm shadow-sm border border-slate-100">
+                        Hello! I'm Alex, your fraud investigation partner. Once you've processed a dataset in the <strong>Detector</strong> tab, I can help you understand complex links between people, IPs, and TINs.
+                    </div>
+                </div>
+                <div class="p-6 bg-slate-50 border-t border-slate-200">
+                    <div class="flex gap-3 bg-white p-2 rounded-2xl border border-slate-200 shadow-sm focus-within:ring-2 focus-within:ring-sky-200 transition-all">
+                        <input type="text" id="chatInput" placeholder="How is John Doe connected to Group 4?" class="flex-grow bg-transparent border-none focus:ring-0 text-slate-700 px-4">
+                        <button id="chatSendBtn" class="bg-sky-600 text-white p-3 rounded-xl hover:bg-sky-700 shadow-md transition-all active:scale-95">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clip-rule="evenodd" /></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal: Alert -->
+    <div id="alertModal" class="fixed inset-0 bg-slate-900/60 z-50 hidden items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md text-center transform transition-all scale-95 opacity-0 border border-slate-100" id="alertModalContent">
+            <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-50 mb-6">
+                <svg class="h-8 w-8 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+            </div>
+            <h3 class="text-2xl font-bold text-slate-900" id="alertTitle">System Alert</h3>
+            <div class="mt-3 text-slate-500" id="alertMessage">An error occurred.</div>
+            <div class="mt-8"><button id="closeModalBtn" class="w-full bg-slate-900 text-white font-bold py-3 rounded-2xl hover:bg-slate-800 transition-all">Acknowledge</button></div>
+        </div>
+    </div>
+
+    <!-- Modal: Export Password -->
+    <div id="passwordModal" class="fixed inset-0 bg-slate-900/60 z-50 hidden items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-sm transform transition-all scale-95 opacity-0 border border-slate-100" id="passwordModalContent">
+            <h3 class="text-2xl font-bold text-slate-900 mb-2">Auth Required</h3>
+            <p class="text-sm text-slate-500 mb-6">Enter the administrator password to export the unmasked report.</p>
+            <div class="space-y-4">
+                <input type="password" id="passwordInput" placeholder="Password" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-sky-200 focus:border-sky-500 outline-none transition-all">
+                <p id="passwordError" class="text-xs text-red-600 hidden font-medium">Incorrect password. Access denied.</p>
+                <div class="grid grid-cols-2 gap-3 pt-4">
+                    <button id="cancelPasswordBtn" class="w-full py-3 bg-slate-100 text-slate-600 font-bold rounded-2xl hover:bg-slate-200 transition-all">Cancel</button>
+                    <button id="submitPasswordBtn" class="w-full py-3 bg-sky-600 text-white font-bold rounded-2xl hover:bg-sky-700 shadow-lg shadow-sky-600/20 transition-all">Export</button>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        // --- GLOBAL STATE & DOM ---
-        const dropZone = document.getElementById('dropZone'), fileInput = document.getElementById('fileInput'),
+        // --- DOM Elements ---
+        const navDetector = document.getElementById('navDetector'), navAnalyst = document.getElementById('navAnalyst'),
+              pageDetector = document.getElementById('pageDetector'), pageAnalyst = document.getElementById('pageAnalyst'),
+              dropZone = document.getElementById('dropZone'), fileInput = document.getElementById('fileInput'),
               fileNameDisplay = document.getElementById('fileName'), actionContainer = document.getElementById('actionContainer'),
               processBtn = document.getElementById('processBtn'), processIcon = document.getElementById('processIcon'),
               spinnerIcon = document.getElementById('spinnerIcon'), processBtnText = document.getElementById('processBtnText'),
-              resultsContainer = document.getElementById('resultsContainer'), summaryContainer = document.getElementById('summaryContainer'),
-              resultsSummary = document.getElementById('resultsSummary'),
+              resultsContainer = document.getElementById('resultsContainer'), resultsSummary = document.getElementById('resultsSummary'),
               tableHeader = document.getElementById('tableHeader'), tableBody = document.getElementById('tableBody'),
               downloadBtn = document.getElementById('downloadBtn'), resetBtn = document.getElementById('resetBtn'),
               alertModal = document.getElementById('alertModal'), alertModalContent = document.getElementById('alertModalContent'),
               alertMessage = document.getElementById('alertMessage'), closeModalBtn = document.getElementById('closeModalBtn'),
-              deeperAnalysisBtn = document.getElementById('deeperAnalysisBtn'),
-              riskConfigContainer = document.getElementById('riskConfigContainer');
-              
-        let uploadedData = [], fileHeaders = [], analysisResults = [], actualKeys = {};
+              chatWindow = document.getElementById('chatWindow'), chatInput = document.getElementById('chatInput'),
+              chatSendBtn = document.getElementById('chatSendBtn'), mindMapWrapper = document.getElementById('mindMapWrapper'),
+              mindMapContainer = document.getElementById('mindMapContainer'), mindMapSvg = document.getElementById('mindMapSvg'),
+              detailPanel = document.getElementById('detailPanel'), detailContent = document.getElementById('detailContent'),
+              closeDetailPanel = document.getElementById('closeDetailPanel'),
+              graphControls = document.getElementById('graphControls'), graphLegend = document.getElementById('graphLegend'),
+              passwordModal = document.getElementById('passwordModal'), passwordModalContent = document.getElementById('passwordModalContent'),
+              passwordInput = document.getElementById('passwordInput'), passwordError = document.getElementById('passwordError'),
+              submitPasswordBtn = document.getElementById('submitPasswordBtn'), cancelPasswordBtn = document.getElementById('cancelPasswordBtn'),
+              summaryContainer = document.getElementById('summaryContainer'), deeperAnalysisBtn = document.getElementById('deeperAnalysisBtn');
 
+        // --- State ---
+        let uploadedData = [], fileHeaders = [], analysisResults = [], unmaskedAnalysisResults = [], actualKeys = {};
+        let d3Elements = {}, fullGraphData = { nodes: [], links: [] };
+
+        // --- Navigation & Redirects ---
+        const switchPage = (target) => {
+            if (target === 'analyst') {
+                pageDetector.classList.add('hidden');
+                pageAnalyst.classList.remove('hidden');
+                navAnalyst.className = 'px-4 py-2 text-sm font-bold rounded-lg transition-all bg-white text-sky-600 shadow-sm';
+                navDetector.className = 'px-4 py-2 text-sm font-bold rounded-lg transition-all text-slate-500 hover:text-slate-700';
+            } else {
+                pageDetector.classList.remove('hidden');
+                pageAnalyst.classList.add('hidden');
+                navDetector.className = 'px-4 py-2 text-sm font-bold rounded-lg transition-all bg-white text-sky-600 shadow-sm';
+                navAnalyst.className = 'px-4 py-2 text-sm font-bold rounded-lg transition-all text-slate-500 hover:text-slate-700';
+            }
+        };
+
+        navDetector.addEventListener('click', () => switchPage('detector'));
+        navAnalyst.addEventListener('click', () => switchPage('analyst'));
+        
+        // --- REDIRECT TO INDEX1.HTML ---
         deeperAnalysisBtn.addEventListener('click', () => {
             window.location.href = 'index1.html';
         });
 
-        // --- CORE FUNCTIONS ---
+        // --- Utility ---
+        const maskPhone = (v) => String(v || '').length > 4 ? '*******' + String(v).slice(-4) : String(v || '');
+        const maskEmail = (v) => {
+            const parts = String(v || '').split('@');
+            if (parts.length !== 2) return String(v || '');
+            return parts[0].substring(0, 2) + '****@' + parts[1];
+        };
+        const maskIp = (v) => {
+            const parts = String(v || '').split('.');
+            return parts.length === 4 ? `${parts[0]}.${parts[1]}.***.***` : String(v || '').substring(0, 4) + '****';
+        };
+        const maskTin = (v) => String(v || '').length > 4 ? '*****' + String(v).slice(-4) : String(v || '');
+
         const showAlert = (message) => {
             alertMessage.innerHTML = message;
             alertModal.classList.remove('hidden');
@@ -306,17 +423,19 @@
             setTimeout(() => alertModalContent.classList.remove('scale-95', 'opacity-0'), 10);
         };
         closeModalBtn.addEventListener('click', () => {
-             alertModalContent.classList.add('scale-95', 'opacity-0');
-             setTimeout(() => { alertModal.classList.add('hidden'); alertModal.classList.remove('flex'); }, 200);
+            alertModalContent.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => { alertModal.classList.add('hidden'); alertModal.classList.remove('flex'); }, 200);
         });
+
+        // --- File Handling ---
         dropZone.addEventListener('click', () => fileInput.click());
         fileInput.addEventListener('change', (e) => handleFile(e.target.files));
-        ['dragover', 'dragleave', 'drop'].forEach(eventName => {
-            dropZone.addEventListener(eventName, e => {
+        ['dragover', 'dragleave', 'drop'].forEach(ev => {
+            dropZone.addEventListener(ev, e => {
                 e.preventDefault();
-                if (eventName === 'dragover') dropZone.classList.add('drag-over');
-                if (eventName === 'dragleave' || eventName === 'drop') dropZone.classList.remove('drag-over');
-                if (eventName === 'drop') handleFile(e.dataTransfer.files);
+                if (ev === 'dragover') dropZone.classList.add('drag-over');
+                if (ev === 'dragleave' || ev === 'drop') dropZone.classList.remove('drag-over');
+                if (ev === 'drop') handleFile(e.dataTransfer.files);
             });
         });
 
@@ -325,39 +444,74 @@
             const file = files[0];
             fileNameDisplay.innerHTML = `<span class="bg-sky-50 text-sky-700 px-3 py-1 rounded-full border border-sky-100 text-sm font-semibold inline-block">Loaded: ${file.name}</span>`;
             actionContainer.classList.remove('hidden');
-            actionContainer.classList.add('fade-in');
             riskConfigContainer.classList.remove('hidden');
-            riskConfigContainer.classList.add('fade-in');
             setupRiskSliders();
             updateTotalScore();
             resultsContainer.classList.add('hidden');
+            mindMapWrapper.classList.add('hidden');
+            
             const reader = new FileReader();
             reader.onload = (e) => {
                 try {
                     const workbook = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
-                    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
                     if (jsonData.length > 1) {
                         fileHeaders = jsonData[0].map(String);
-                        uploadedData = XLSX.utils.sheet_to_json(worksheet);
+                        uploadedData = XLSX.utils.sheet_to_json(sheet);
                     } else {
-                        showAlert("The file is empty or only has a header.");
+                        showAlert("Empty file.");
                         resetUI();
                     }
-                } catch (error) {
-                    showAlert("Could not process the file. It may be corrupted.");
-                    resetUI();
-                }
+                } catch (err) { showAlert("Corrupted file."); resetUI(); }
             };
             reader.readAsArrayBuffer(file);
         };
 
-        const setProcessingState = (isProcessing) => {
-             processBtn.disabled = isProcessing;
-             processIcon.classList.toggle('hidden', isProcessing);
-             spinnerIcon.classList.toggle('hidden', !isProcessing);
-             processBtnText.textContent = isProcessing ? 'Processing Cluster Logic...' : 'Run Fraud Analysis';
+        // --- Configuration & Processing ---
+        const syncSliderAndInput = (s, i) => {
+            const slider = document.getElementById(s), input = document.getElementById(i);
+            slider.addEventListener('input', (e) => { input.value = e.target.value; updateTotalScore(); });
+            input.addEventListener('input', (e) => {
+                const v = Math.max(1, Math.min(100, parseInt(e.target.value, 10) || 0));
+                e.target.value = v; slider.value = v; updateTotalScore();
+            });
         };
+
+        const setupRiskSliders = () => {
+            syncSliderAndInput('sliderPhone', 'scorePhone');
+            syncSliderAndInput('sliderEmail', 'scoreEmail');
+            syncSliderAndInput('sliderIp', 'scoreIp');
+            syncSliderAndInput('sliderTin', 'scoreTin');
+            syncSliderAndInput('sliderName', 'scoreName');
+        };
+
+        const updateTotalScore = () => {
+            const scores = getRiskScores();
+            const total = Object.values(scores).reduce((a, b) => a + b, 0);
+            const scoreEl = document.getElementById('totalRiskScore');
+            const msgEl = document.getElementById('totalRiskMessage');
+            scoreEl.textContent = total;
+            if (total === 100) {
+                scoreEl.className = 'font-bold text-2xl text-green-600';
+                msgEl.textContent = 'Configuration is balanced.';
+                msgEl.className = 'text-sm font-medium text-green-600';
+                processBtn.disabled = false;
+            } else {
+                scoreEl.className = 'font-bold text-2xl text-red-500';
+                msgEl.textContent = 'Weights must sum to 100%';
+                msgEl.className = 'text-sm font-medium text-red-500';
+                processBtn.disabled = true;
+            }
+        };
+
+        const getRiskScores = () => ({
+            phone: parseInt(document.getElementById('scorePhone').value, 10) || 0,
+            email: parseInt(document.getElementById('scoreEmail').value, 10) || 0,
+            ip: parseInt(document.getElementById('scoreIp').value, 10) || 0,
+            tin: parseInt(document.getElementById('scoreTin').value, 10) || 0,
+            name: parseInt(document.getElementById('scoreName').value, 10) || 0,
+        });
 
         const levenshtein = (s1, s2) => {
             s1 = (s1 || '').toLowerCase(); s2 = (s2 || '').toLowerCase();
@@ -369,8 +523,7 @@
                     else if (j > 0) {
                         let newValue = costs[j - 1];
                         if (s1.charAt(i - 1) !== s2.charAt(j - 1)) newValue = Math.min(Math.min(newValue, lastValue), costs[j]) + 1;
-                        costs[j - 1] = lastValue;
-                        lastValue = newValue;
+                        costs[j - 1] = lastValue; lastValue = newValue;
                     }
                 }
                 if (i > 0) costs[s2.length] = lastValue;
@@ -378,227 +531,340 @@
             return costs[s2.length];
         };
 
-        const syncSliderAndInput = (sliderId, inputId) => {
-            const slider = document.getElementById(sliderId);
-            const input = document.getElementById(inputId);
-            if (!slider || !input) return;
-
-            slider.addEventListener('input', (e) => {
-                input.value = e.target.value;
-                updateTotalScore();
-            });
-            input.addEventListener('input', (e) => {
-                const value = Math.max(parseInt(slider.min, 10), Math.min(parseInt(slider.max, 10), parseInt(e.target.value, 10) || 0));
-                e.target.value = value;
-                slider.value = value;
-                updateTotalScore();
-            });
-        };
-        
-        const setupRiskSliders = () => {
-            syncSliderAndInput('sliderPhone', 'scorePhone');
-            syncSliderAndInput('sliderEmail', 'scoreEmail');
-            syncSliderAndInput('sliderIp', 'scoreIp');
-            syncSliderAndInput('sliderTin', 'scoreTin');
-            syncSliderAndInput('sliderName', 'scoreName');
-        };
-
-        const updateTotalScore = () => {
-            const totalScoreEl = document.getElementById('totalRiskScore');
-            const totalMessageEl = document.getElementById('totalRiskMessage');
-            if (!totalScoreEl || !totalMessageEl) return;
-
-            const scores = getRiskScores();
-            const total = Object.values(scores).reduce((sum, score) => sum + score, 0);
-
-            totalScoreEl.textContent = total;
-
-            if (total === 100) {
-                totalScoreEl.className = 'font-bold text-2xl text-green-600';
-                totalMessageEl.textContent = 'Configuration is balanced.';
-                totalMessageEl.className = 'text-sm font-medium text-green-600';
-                processBtn.disabled = false;
-            } else {
-                totalScoreEl.className = 'font-bold text-2xl text-red-500';
-                totalMessageEl.textContent = 'Weights must sum to 100%';
-                totalMessageEl.className = 'text-sm font-medium text-red-500';
-                processBtn.disabled = true;
-            }
-        };
-
-        const getRiskScores = () => {
-            return {
-                phone: parseInt(document.getElementById('scorePhone').value, 10) || 0,
-                email: parseInt(document.getElementById('scoreEmail').value, 10) || 0,
-                ip: parseInt(document.getElementById('scoreIp').value, 10) || 0,
-                tin: parseInt(document.getElementById('scoreTin').value, 10) || 0,
-                name: parseInt(document.getElementById('scoreName').value, 10) || 0,
-            };
-        };
-        
-        // --- ANALYSIS ENGINE ---
         processBtn.addEventListener('click', () => {
-            if (uploadedData.length === 0) return showAlert("No data to process.");
-            
+            if (uploadedData.length === 0) return;
             const requiredKeys = { 'phone number': 'phone', 'mail id': 'email', 'ip address': 'ip', 'location': 'location', 'name': 'name', 'tin number': 'tin' };
             const headerMap = {};
             fileHeaders.forEach(h => { headerMap[h.toLowerCase().trim()] = h; });
-
             actualKeys = {};
             for(const key in requiredKeys) {
-                const foundKey = Object.keys(headerMap).find(h => h.includes(key));
-                if (!foundKey) return showAlert(`<b>Missing Column</b><br>The file must contain a column for "${key}".`);
-                actualKeys[requiredKeys[key]] = headerMap[foundKey];
+                const found = Object.keys(headerMap).find(h => h.includes(key));
+                if (!found) return showAlert(`Missing Column: "${key}"`);
+                actualKeys[requiredKeys[key]] = headerMap[found];
             }
 
-            const userScores = getRiskScores();
+            processIcon.classList.add('hidden'); spinnerIcon.classList.remove('hidden');
+            processBtn.disabled = true; processBtnText.textContent = "Processing Clusters...";
 
-            setProcessingState(true);
             setTimeout(() => {
-                const maps={phone:{},email:{},ip:{}, tin:{}};uploadedData.forEach((row,index)=>{const phone=row[actualKeys.phone];const email=row[actualKeys.email];const ip=row[actualKeys.ip]; const tin=row[actualKeys.tin]; if(phone){if(!maps.phone[phone])maps.phone[phone]=[];maps.phone[phone].push(index)}if(email){if(!maps.email[email])maps.email[email]=[];maps.email[email].push(index)}if(ip){if(!maps.ip[ip])maps.ip[ip]=[];maps.ip[ip].push(index)} if(tin && /^\d{9}$/.test(tin.toString())){if(!maps.tin[tin])maps.tin[tin]=[]; maps.tin[tin].push(index)}});const adj=Array(uploadedData.length).fill(0).map(()=>new Set());for(const key in maps){for(const value in maps[key]){const indices=maps[key][value];if(indices.length>1){for(let i=0;i<indices.length;i++){for(let j=i+1;j<indices.length;j++){adj[indices[i]].add(indices[j]);adj[indices[j]].add(indices[i])}}}}};const visited=new Array(uploadedData.length).fill(false);analysisResults=[];let fraudRingCounter = 1;for(let i=0;i<uploadedData.length;i++){if(!visited[i]&&adj[i].size>0){const component=[];const stack=[i];visited[i]=true;while(stack.length>0){const u=stack.pop();component.push(u);adj[u].forEach(v=>{if(!visited[v]){visited[v]=true;stack.push(v)}})}
-                const componentData=component.map(idx=>uploadedData[idx]);const phones=new Set(componentData.map(d=>d[actualKeys.phone]));const emails=new Set(componentData.map(d=>d[actualKeys.email]));const ips=new Set(componentData.map(d=>d[actualKeys.ip]));const locations=new Set(componentData.map(d=>d[actualKeys.location]));const names=componentData.map(d=>d[actualKeys.name]); const tins = new Set(componentData.map(d => d[actualKeys.tin])); 
-                
-                let baseScore = 0;
-                const reasons = new Set();
-                if (phones.size < component.length) { baseScore += userScores.phone; reasons.add("Shared Phone"); }
-                if (emails.size < component.length) { baseScore += userScores.email; reasons.add("Shared Email"); }
-                if (ips.size < component.length && locations.size > 1) { baseScore += userScores.ip; reasons.add("Shared IP/Cross Location"); }
-                if (tins.size < component.length) { baseScore += userScores.tin; reasons.add("Shared TIN"); }
-                
-                let similarNames=false;
-                for(let j=0;j<names.length;j++){for(let k=j+1;k<names.length;k++){if(names[j]&&names[k]&&levenshtein(names[j],names[k])<=2){similarNames=true;break}}if(similarNames)break}
-                if(similarNames){baseScore+=userScores.name;reasons.add("Similar Names")}
-                
-                const combinationBonus = 1 + (reasons.size > 1 ? (reasons.size - 1) * 0.15 : 0);
-                const networkSizeMultiplier = Math.min(2.0, 1 + (component.length - 1) * 0.1);
-                
-                const calculatedScore = baseScore * combinationBonus * networkSizeMultiplier;
-                const finalScore = Math.min(100, Math.round(calculatedScore));
+                const maps = { phone: {}, email: {}, ip: {}, tin: {} };
+                uploadedData.forEach((row, idx) => {
+                    ['phone', 'email', 'ip'].forEach(k => {
+                        const val = row[actualKeys[k]];
+                        if(val) { if(!maps[k][val]) maps[k][val] = []; maps[k][val].push(idx); }
+                    });
+                    const tin = String(row[actualKeys.tin] || '');
+                    if(tin && /^\d{9}$/.test(tin)) { if(!maps.tin[tin]) maps.tin[tin] = []; maps.tin[tin].push(idx); }
+                });
 
-                const groupId = `${fraudRingCounter}`;
-                component.forEach(index=>{analysisResults.push({...uploadedData[index],"Group ID": groupId,"Risk Score":finalScore,"Risk Factors":Array.from(reasons).join(', ')})});
-                fraudRingCounter++;
-                }};analysisResults.sort((a,b)=>b["Risk Score"]-a["Risk Score"]|| parseInt(a["Group ID"]) - parseInt(b["Group ID"]));
+                const adj = Array(uploadedData.length).fill(0).map(() => new Set());
+                for(const k in maps) {
+                    for(const val in maps[k]) {
+                        const idxs = maps[k][val];
+                        if(idxs.length > 1) {
+                            for(let i=0; i<idxs.length; i++) for(let j=i+1; j<idxs.length; j++) { adj[idxs[i]].add(idxs[j]); adj[idxs[j]].add(idxs[i]); }
+                        }
+                    }
+                }
+
+                const visited = new Array(uploadedData.length).fill(false);
+                analysisResults = []; unmaskedAnalysisResults = [];
+                let fraudRingCounter = 1;
+                const userScores = getRiskScores();
+
+                for(let i=0; i<uploadedData.length; i++) {
+                    if(!visited[i] && adj[i].size > 0) {
+                        const component = [], stack = [i]; visited[i] = true;
+                        while(stack.length > 0) {
+                            const u = stack.pop(); component.push(u);
+                            adj[u].forEach(v => { if(!visited[v]) { visited[v]=true; stack.push(v); } });
+                        }
+                        const compData = component.map(idx => uploadedData[idx]);
+                        const phones = new Set(compData.map(d => d[actualKeys.phone]).filter(Boolean));
+                        const emails = new Set(compData.map(d => d[actualKeys.email]).filter(Boolean));
+                        const ips = new Set(compData.map(d => d[actualKeys.ip]).filter(Boolean));
+                        const locations = new Set(compData.map(d => d[actualKeys.location]).filter(Boolean));
+                        const names = compData.map(d => d[actualKeys.name]);
+                        const tins = new Set(compData.map(d => String(d[actualKeys.tin] || '')).filter(t => /^\d{9}$/.test(t)));
+
+                        let baseScore = 0; const reasons = new Set();
+                        if(phones.size < component.length && phones.size > 0) { baseScore += userScores.phone; reasons.add("Shared Phone"); }
+                        if(emails.size < component.length && emails.size > 0) { baseScore += userScores.email; reasons.add("Shared Email"); }
+                        if(ips.size < component.length && ips.size > 0 && locations.size > 1) { baseScore += userScores.ip; reasons.add("Shared IP/Cross Location"); }
+                        if(tins.size < component.length && tins.size > 0) { baseScore += userScores.tin; reasons.add("Shared TIN"); }
+                        
+                        let sim = false;
+                        for(let j=0; j<names.length; j++) {
+                            for(let k=j+1; k<names.length; k++) {
+                                if(names[j] && names[k] && levenshtein(names[j], names[k]) <= 2) { sim = true; break; }
+                            }
+                            if(sim) break;
+                        }
+                        if(sim) { baseScore += userScores.name; reasons.add("Similar Names"); }
+
+                        const bonus = 1 + (reasons.size > 1 ? (reasons.size - 1) * 0.15 : 0);
+                        const sizeM = Math.min(2.0, 1 + (component.length - 1) * 0.1);
+                        const final = Math.min(100, Math.round(baseScore * bonus * sizeM));
+                        const gid = `${fraudRingCounter++}`;
+
+                        component.forEach(idx => {
+                            const original = uploadedData[idx];
+                            const masked = { ...original };
+                            masked[actualKeys.phone] = maskPhone(original[actualKeys.phone]);
+                            masked[actualKeys.email] = maskEmail(original[original[actualKeys.email]]);
+                            masked[actualKeys.ip] = maskIp(original[actualKeys.ip]);
+                            masked[actualKeys.tin] = maskTin(original[actualKeys.tin]);
+                            
+                            const resObj = { "Group ID": gid, "Risk Score": final, "Risk Factors": Array.from(reasons).join(', ') };
+                            analysisResults.push({ ...masked, ...resObj });
+                            unmaskedAnalysisResults.push({ ...original, ...resObj });
+                        });
+                    }
+                }
+                analysisResults.sort((a,b) => b["Risk Score"] - a["Risk Score"] || a["Group ID"] - b["Group ID"]);
+                unmaskedAnalysisResults.sort((a,b) => b["Risk Score"] - a["Risk Score"] || a["Group ID"] - b["Group ID"]);
 
                 displayResults();
-                setProcessingState(false);
+                processIcon.classList.remove('hidden'); spinnerIcon.classList.add('hidden');
+                processBtn.disabled = false; processBtnText.textContent = "Run Deep Analysis";
             }, 800);
         });
 
-        const displaySummaryStats = () => {
-            if (analysisResults.length === 0 && uploadedData.length === 0) {
-                summaryContainer.classList.add('hidden');
-                return;
-            }
-            const totalRecords = uploadedData.length;
-            const fraudRings = new Set(analysisResults.map(r => r['Group ID'])).size;
-            const highRiskUsers = analysisResults.filter(r => r['Risk Score'] > 75).length;
-            
-            let topFactor = 'N/A';
-            const factorCounts = {};
-            analysisResults.forEach(r => {
-                if(!r['Risk Factors']) return;
-                const factors = r['Risk Factors'].split(', ');
-                factors.forEach(f => {
-                    if (f) factorCounts[f] = (factorCounts[f] || 0) + 1;
-                });
-            });
-            if (Object.keys(factorCounts).length > 0) {
-               topFactor = Object.keys(factorCounts).reduce((a, b) => factorCounts[a] > factorCounts[b] ? a : b);
-            }
-            
-            document.getElementById('statTotalRecords').textContent = totalRecords;
-            document.getElementById('statFraudRings').textContent = fraudRings;
-            document.getElementById('statHighRisk').textContent = highRiskUsers;
-            document.getElementById('statTopFactor').textContent = topFactor;
-            
-            summaryContainer.classList.remove('hidden');
-            summaryContainer.classList.add('fade-in');
-        };
-
         const displayResults = () => {
-            actionContainer.classList.add('hidden');
             riskConfigContainer.classList.add('hidden');
             resultsContainer.classList.remove('hidden');
             resultsContainer.classList.add('fade-in');
-
+            
             const groupCount = new Set(analysisResults.map(r => r['Group ID'])).size;
-            resultsSummary.textContent = groupCount > 0 
-                ? `System identified ${groupCount} unique fraud rings involving ${analysisResults.length} high-probability identities.`
-                : 'Dataset appears valid. No high-risk clusters detected using current weights.';
+            resultsSummary.textContent = groupCount > 0 ? `Identified ${groupCount} rings involving ${analysisResults.length} entities.` : 'No clusters detected.';
             
-            displaySummaryStats();
-
-            tableHeader.innerHTML = '';
-            tableBody.innerHTML = '';
-
-            if (analysisResults.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="10" class="text-center p-12 text-slate-500"><div class="flex flex-col items-center gap-3"><div class="h-16 w-16 rounded-full bg-green-50 flex items-center justify-center text-green-600"><svg class="w-8 h-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></div><span class="font-bold text-slate-800 text-xl">All Safe</span>Current data shows no interconnected risks.</div></td></tr>`;
-                downloadBtn.disabled = true;
-                return;
-            }
-
-            downloadBtn.disabled = false;
-            const displayHeaders = ["Group ID", ...fileHeaders, "Risk Factors", "Risk Score"];
-            displayHeaders.forEach(headerText => {
-                tableHeader.innerHTML += `<th scope="col" class="px-6 py-4 text-left text-xs font-bold text-slate-400 uppercase tracking-widest bg-slate-50 border-b border-slate-200">${headerText}</th>`;
-            });
+            // Summary Stats
+            summaryContainer.classList.remove('hidden');
+            document.getElementById('statTotalRecords').textContent = uploadedData.length;
+            document.getElementById('statFraudRings').textContent = groupCount;
+            document.getElementById('statHighRisk').textContent = analysisResults.filter(r => r['Risk Score'] > 75).length;
             
-            let lastGroupId = null;
+            const factors = {};
+            analysisResults.forEach(r => r['Risk Factors'].split(', ').forEach(f => { if(f) factors[f] = (factors[f] || 0) + 1; }));
+            document.getElementById('statTopFactor').textContent = Object.keys(factors).length ? Object.keys(factors).reduce((a,b) => factors[a] > factors[b] ? a : b) : 'N/A';
+
+            // Table
+            tableHeader.innerHTML = ''; tableBody.innerHTML = '';
+            const dispHeaders = ["Group ID", ...fileHeaders, "Risk Factors", "Risk Score"];
+            dispHeaders.forEach(h => tableHeader.innerHTML += `<th class="px-6 py-4 text-left text-xs font-bold text-slate-400 uppercase tracking-widest bg-slate-50 border-b border-slate-200">${h}</th>`);
+            
+            let lastGid = null;
             analysisResults.forEach(row => {
-                if (row["Group ID"] !== lastGroupId) {
-                    const groupSize = analysisResults.filter(r => r["Group ID"] === row["Group ID"]).length;
-                    tableBody.innerHTML += `<tr><td colspan="${displayHeaders.length}" class="px-6 py-3 bg-slate-50/50 text-slate-900 font-bold text-sm border-y border-slate-200">
-                        <div class="flex items-center gap-2">
-                            <span class="inline-block w-2 h-2 rounded-full bg-sky-500"></span>
-                            CLUSTER ID: ${row["Group ID"]} 
-                            <span class="ml-2 text-xs font-medium text-slate-400">(${groupSize} Entries Linked)</span>
-                        </div>
-                    </td></tr>`;
-                    lastGroupId = row["Group ID"];
+                if(row["Group ID"] !== lastGid) {
+                    const size = analysisResults.filter(r => r["Group ID"] === row["Group ID"]).length;
+                    tableBody.innerHTML += `<tr><td colspan="${dispHeaders.length}" class="px-6 py-3 bg-slate-50/50 text-slate-900 font-bold text-sm border-y border-slate-200">CLUSTER ID: ${row["Group ID"]} (${size} Linked)</td></tr>`;
+                    lastGid = row["Group ID"];
                 }
-                
                 const score = row["Risk Score"];
-                const riskBarWidth = `width: ${score}%;`;
-                const riskColorClass = score > 75 ? 'bg-red-500' : score > 50 ? 'bg-orange-500' : 'bg-yellow-400';
-
-                let tr = `<tr class="hover:bg-slate-50 transition-colors">
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-slate-900 border-r border-slate-100">${row["Group ID"]}</td>`;
-                fileHeaders.forEach(header => {
-                    tr += `<td class="px-6 py-4 whitespace-nowrap text-sm text-slate-700 border-r border-slate-100">${row[header] ?? ''}</td>`;
-                });
-                tr += `<td class="px-6 py-4 whitespace-normal text-xs font-bold text-red-500 border-r border-slate-100">${row["Risk Factors"]}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="flex items-center gap-3">
-                             <span class="font-bold text-slate-900 text-sm w-8">${score}</span>
-                            <div class="flex-grow min-w-[80px] bg-slate-100 rounded-full h-2">
-                                <div class="${riskColorClass} h-2 rounded-full shadow-sm" style="${riskBarWidth}"></div>
-                            </div>
-                        </div>
-                    </td>
-                </tr>`;
+                const color = score > 75 ? 'bg-red-500' : score > 50 ? 'bg-orange-500' : 'bg-yellow-400';
+                let tr = `<tr class="hover:bg-slate-50">`;
+                tr += `<td class="px-6 py-4 text-sm font-semibold text-slate-900 border-r border-slate-100">${row["Group ID"]}</td>`;
+                fileHeaders.forEach(h => tr += `<td class="px-6 py-4 text-sm text-slate-700 border-r border-slate-100">${row[h] ?? ''}</td>`);
+                tr += `<td class="px-6 py-4 text-xs font-bold text-red-500 border-r border-slate-100">${row["Risk Factors"]}</td>
+                    <td class="px-6 py-4"><div class="flex items-center gap-3"><span class="font-bold text-sm w-8">${score}</span><div class="flex-grow min-w-[80px] bg-slate-100 rounded-full h-2"><div class="${color} h-2 rounded-full" style="width:${score}%"></div></div></div></td></tr>`;
                 tableBody.innerHTML += tr;
             });
-        };
 
-        downloadBtn.addEventListener('click', () => {
-            if (analysisResults.length === 0) return;
-            const worksheet = XLSX.utils.json_to_sheet(analysisResults);
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Fraud_Analysis_Report");
-            XLSX.writeFile(workbook, "Fraud_Analysis_Report.xlsx");
-        });
+            // Graph
+            if(analysisResults.length > 0) {
+                mindMapWrapper.classList.remove('hidden');
+                prepareGraphData();
+                drawGraph();
+            }
+        };
 
         const resetUI = () => {
-            uploadedData = []; analysisResults = []; fileHeaders = []; actualKeys={};
-            fileInput.value = ''; fileNameDisplay.textContent = '';
-            uploadContainer.classList.remove('hidden'); 
-            actionContainer.classList.add('hidden');
-            riskConfigContainer.classList.add('hidden');
-            resultsContainer.classList.add('hidden'); 
-            summaryContainer.classList.add('hidden');
+            uploadedData = []; analysisResults = []; unmaskedAnalysisResults = [];
+            fileNameDisplay.innerHTML = ''; fileInput.value = '';
+            resultsContainer.classList.add('hidden'); riskConfigContainer.classList.add('hidden');
+            mindMapWrapper.classList.add('hidden'); summaryContainer.classList.add('hidden');
+            chatWindow.innerHTML = '<div class="chat-bubble-bot self-start rounded-2xl p-4 max-w-lg text-sm shadow-sm border border-slate-100">Hello! I\'m Alex...</div>';
         };
         resetBtn.addEventListener('click', resetUI);
+
+        // --- Network Graph ---
+        const prepareGraphData = () => {
+            const nodesMap = new Map(); const links = [];
+            const add = (id, type, data, group) => { if(id && !nodesMap.has(id)) nodesMap.set(id, { id, type, data, group }); };
+            
+            unmaskedAnalysisResults.forEach(row => {
+                const name = row[actualKeys.name], phone = row[actualKeys.phone], email = row[actualKeys.email], ip = row[actualKeys.ip], tin = String(row[actualKeys.tin] || ''), gid = row['Group ID'];
+                if(!name) return;
+                add(name, 'user', row, gid);
+                if(phone) { add(phone, 'phone', null, gid); links.push({ source: name, target: phone, group: gid }); }
+                if(email) { add(email, 'email', null, gid); links.push({ source: name, target: email, group: gid }); }
+                if(ip) { add(ip, 'ip', null, gid); links.push({ source: name, target: ip, group: gid }); }
+                if(tin && /^\d{9}$/.test(tin)) { add(tin, 'tin', null, gid); links.push({ source: name, target: tin, group: gid }); }
+            });
+            fullGraphData = { nodes: Array.from(nodesMap.values()), links };
+        };
+
+        const drawGraph = (filterGid = null) => {
+            mindMapSvg.innerHTML = ''; graphLegend.innerHTML = '';
+            let nToShow = filterGid ? fullGraphData.nodes.filter(n => n.group === filterGid) : [];
+            let lToShow = filterGid ? fullGraphData.links.filter(l => l.group === filterGid) : [];
+
+            if(!filterGid) {
+                const reps = new Map();
+                fullGraphData.nodes.forEach(n => { if(n.type === 'user' && !reps.has(n.group)) reps.set(n.group, n); });
+                nToShow = Array.from(reps.values());
+            }
+
+            const w = mindMapContainer.clientWidth, h = mindMapContainer.clientHeight;
+            const svg = d3.select("#mindMapSvg");
+            const g = svg.append("g");
+            const color = d3.scaleOrdinal(d3.schemeTableau10);
+            const riskScale = d3.scaleSqrt().domain([0, 100]).range([10, 25]);
+
+            const sim = d3.forceSimulation(nToShow)
+                .force("link", d3.forceLink(lToShow).id(d => d.id).distance(120).strength(filterGid ? 0.4 : 0))
+                .force("charge", d3.forceManyBody().strength(-900))
+                .force("center", d3.forceCenter(w / 2, h / 2))
+                .force("collide", d3.forceCollide().radius(d => (d.type === 'user' ? riskScale(d.data['Risk Score']) : 15) + 20));
+
+            const line = g.append("g").selectAll("line").data(lToShow).join("line").attr("class", "graph-link").attr("stroke", d => color(d.group));
+            const node = g.append("g").selectAll("g").data(nToShow).join("g").attr("class", "graph-node")
+                .call(d3.drag().on("start", (e, d) => { if (!e.active) sim.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; }).on("drag", (e, d) => { d.fx = e.x; d.fy = e.y; }).on("end", (e, d) => { if (!e.active) sim.alphaTarget(0); d.fx = null; d.fy = null; }));
+
+            node.append("circle")
+                .attr("r", d => d.type === 'user' ? riskScale(d.data['Risk Score']) : 16)
+                .attr("fill", d => color(d.group)).attr("stroke", "#fff").attr("stroke-width", 2);
+
+            node.append('svg').attr('width', 16).attr('height', 16).attr('x', -8).attr('y', -8).attr('class', 'text-white')
+                .append('use').attr('xlink:href', d => d.type === 'user' ? '#icon-user' : '#icon-' + d.type);
+
+            node.append("text").attr("class", "graph-text").attr("dy", 35).attr("text-anchor", "middle").text(d => d.type === 'user' ? d.id : (filterGid ? '' : 'Group ' + d.group));
+
+            const zoom = d3.zoom().scaleExtent([0.1, 5]).on("zoom", (e) => g.attr("transform", e.transform));
+            svg.call(zoom).on("dblclick.zoom", null);
+
+            sim.on("tick", () => {
+                line.attr("x1", d => d.source.x).attr("y1", d => d.source.y).attr("x2", d => d.target.x).attr("y2", d => d.target.y);
+                node.attr("transform", d => `translate(${d.x},${d.y})`);
+            });
+
+            // Legend
+            const groups = Array.from(new Set(fullGraphData.nodes.map(n => n.group))).sort((a,b) => a - b);
+            groups.forEach(gid => {
+                const item = d3.select("#graphLegend").append("div").attr("class", "flex items-center gap-2 px-3 py-1 cursor-pointer hover:bg-white rounded-lg transition-all")
+                    .on("click", () => { drawGraph(gid); svg.transition().duration(750).call(zoom.transform, d3.zoomIdentity); });
+                item.append("div").attr("class", "w-3 h-3 rounded-full").style("background-color", color(gid));
+                item.append("span").attr("class", "text-xs font-bold text-slate-700 whitespace-nowrap").text(`Group ${gid}`);
+            });
+
+            node.on("click", (e, d) => {
+                if(!filterGid) drawGraph(d.group);
+                else {
+                    let c = `<h4 class="font-bold text-slate-900">${d.type === 'user' ? d.id : 'Shared ' + d.type}</h4><div class="mt-4 space-y-2 text-sm">`;
+                    if(d.type === 'user') {
+                        const ud = d.data;
+                        c += `<p><strong>Phone:</strong> ${maskPhone(ud[actualKeys.phone])}</p><p><strong>Email:</strong> ${maskEmail(ud[actualKeys.email])}</p><p><strong>Risk:</strong> ${ud['Risk Score']}</p>`;
+                    } else {
+                        c += `<p><strong>Value:</strong> ${d.id.substring(0, 3)}***</p>`;
+                    }
+                    c += `</div>`;
+                    detailContent.innerHTML = c; detailPanel.classList.remove('translate-x-[120%]');
+                }
+                e.stopPropagation();
+            });
+            svg.on("click", () => detailPanel.classList.add('translate-x-[120%]'));
+            
+            d3Elements = { node, line, zoom, svg };
+            document.querySelectorAll('.graph-control-btn').forEach(btn => btn.onclick = () => {
+                const z = btn.dataset.zoom;
+                if(z === 'in') svg.transition().call(zoom.scaleBy, 1.3);
+                if(z === 'out') svg.transition().call(zoom.scaleBy, 0.7);
+                if(z === 'reset') { drawGraph(); svg.transition().call(zoom.transform, d3.zoomIdentity); }
+            });
+        };
+        closeDetailPanel.addEventListener('click', () => detailPanel.classList.add('translate-x-[120%]'));
+
+        // --- Export & Password ---
+        downloadBtn.addEventListener('click', () => {
+            passwordInput.value = ''; passwordError.classList.add('hidden');
+            passwordModal.classList.remove('hidden'); passwordModal.classList.add('flex');
+            setTimeout(() => passwordModalContent.classList.remove('scale-95', 'opacity-0'), 10);
+        });
+        cancelPasswordBtn.addEventListener('click', () => {
+            passwordModalContent.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => { passwordModal.classList.add('hidden'); passwordModal.classList.remove('flex'); }, 200);
+        });
+        submitPasswordBtn.addEventListener('click', () => {
+            if (passwordInput.value === "Amithnp@18") {
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(unmaskedAnalysisResults), "Analysis");
+                XLSX.writeFile(wb, "Fraud_Report_Unmasked.xlsx");
+                cancelPasswordBtn.click();
+            } else passwordError.classList.remove('hidden');
+        });
+
+        // --- Chatbot ---
+        const callAlex = async (q, data) => {
+            const apiKey = ""; // Runtime provides key
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+            const sys = "You are Alex, a friendly fraud investigator. Help the user understand connections. Do not use Markdown styling like bold or lists. Use line breaks. If looking for relations between A and B, check if they are in the same Group ID. If so, they are connected. End with [MINDMAP_VIEW:A,B] if found.";
+            const payload = {
+                contents: [{ parts: [{ text: `Query: ${q}\nData: ${JSON.stringify(data.slice(0, 50))}` }] }],
+                systemInstruction: { parts: [{ text: sys }] }
+            };
+
+            for (let i = 0; i < 5; i++) {
+                try {
+                    const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                    if (res.ok) {
+                        const r = await res.json();
+                        return r.candidates?.[0]?.content?.parts?.[0]?.text || "I couldn't find anything.";
+                    }
+                    await new Promise(r => setTimeout(r, Math.pow(2, i) * 1000));
+                } catch(e) {}
+            }
+            return "I'm having trouble connecting.";
+        };
+
+        const appendChat = (m, s) => {
+            const b = document.createElement('div');
+            b.className = `rounded-2xl p-4 max-w-lg text-sm shadow-sm border ${s === 'user' ? 'chat-bubble-user self-end' : 'chat-bubble-bot self-start border-slate-100'}`;
+            
+            const mmMatch = m.match(/\[MINDMAP_VIEW:(.*?)\]/);
+            let clean = m;
+            if(mmMatch) {
+                clean = m.replace(mmMatch[0], '').trim();
+                const btn = document.createElement('button');
+                btn.className = 'mt-3 block bg-white text-sky-600 px-3 py-1 rounded-lg text-xs font-bold border border-sky-100 shadow-sm';
+                btn.textContent = 'View Investigation Path';
+                btn.onclick = () => {
+                    const names = mmMatch[1].split(',');
+                    const row = unmaskedAnalysisResults.find(r => r[actualKeys.name] === names[0]);
+                    if(row) { switchPage('detector'); drawGraph(row['Group ID']); }
+                };
+                b.innerHTML = clean.replace(/\n/g, '<br>');
+                b.appendChild(btn);
+            } else {
+                b.innerHTML = m.replace(/\n/g, '<br>');
+            }
+            chatWindow.appendChild(b); chatWindow.scrollTop = chatWindow.scrollHeight;
+        };
+
+        chatSendBtn.addEventListener('click', async () => {
+            const q = chatInput.value.trim(); if(!q) return;
+            appendChat(q, 'user'); chatInput.value = ''; chatSendBtn.disabled = true;
+            
+            const botB = document.createElement('div');
+            botB.className = 'chat-bubble-bot self-start rounded-2xl p-4 text-sm flex items-center gap-2';
+            botB.innerHTML = 'Alex is thinking... <div class="w-3 h-3 border-2 border-sky-600 border-t-transparent rounded-full chat-spinner"></div>';
+            chatWindow.appendChild(botB);
+
+            const ans = await callAlex(q, unmaskedAnalysisResults);
+            botB.remove();
+            appendChat(ans, 'bot');
+            chatSendBtn.disabled = false;
+        });
+        chatInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') chatSendBtn.click(); });
     </script>
 </body>
 </html>
